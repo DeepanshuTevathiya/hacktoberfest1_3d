@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/demoblueprints.ts","./src/main.tsx","./src/vite-env.d.ts","./src/api/client.ts","./src/layouts/index.test.ts","./src/layouts/index.ts","./src/scene/viewer.tsx","./src/store/usestore.ts","./src/types/blueprint.ts"],"version":"5.9.3"}
