@@ -154,6 +154,7 @@ If Gemma or ElevenLabs is unavailable, the backend logs the problem and the app 
 
 - Microwave and TV interactive demos
 - Image upload and object identification
+- Uploaded-image analysis may take 5–7 minutes while the loading screen is shown.
 - Structured JSON-to-3D rendering
 - Part-level Panda explanations
 - ElevenLabs spoken responses
