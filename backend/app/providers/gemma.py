@@ -41,3 +41,23 @@ class GemmaProvider:
                 if attempt == 1:
                     time.sleep(1.5)
         raise RuntimeError(f"Gemma was unavailable after one retry: {type(last_error).__name__}") from last_error
+
+    def explain_part(self, object_name: str, part_name: str, role: str, description: str, fact: str) -> str:
+        prompt = (
+            "You are Panda, a friendly science guide for children. Explain this part in simple language: "
+            f"{part_name}, inside a {object_name}. Its role is {role}. It {description} "
+            f"Helpful fact: {fact} Give exactly 2 short sentences, under 55 words total. Be accurate."
+        )
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.3,
+                max_output_tokens=150,
+                thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.MINIMAL),
+            ),
+        )
+        text = (response.text or "").strip()
+        if not text:
+            raise RuntimeError("Gemma returned an empty explanation")
+        return text

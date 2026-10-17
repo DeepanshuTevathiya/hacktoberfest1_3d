@@ -52,6 +52,12 @@ class Pipeline:
         known = self.demo(slugify(name))
         return known or fallback_blueprint(name)
 
+    def explain_part(self, object_name: str, part_name: str, role: str, description: str, fact: str) -> str:
+        if not self.gemma:
+            raise RuntimeError("GEMINI_API_KEY is not configured")
+        print(f"[panda] explaining {part_name!r} in {object_name!r}", flush=True)
+        return self.gemma.explain_part(object_name, part_name, role, description, fact)
+
     def analyze_image(self, raw: bytes, mime_type: str, object_name_override: str | None = None) -> Blueprint:
         if not self.gemma:
             raise RuntimeError("GEMINI_API_KEY is not configured")

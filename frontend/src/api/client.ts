@@ -24,3 +24,18 @@ export async function analyze(file:File, name?:string): Promise<Blueprint> {
   }
   throw new Error(lastError instanceof Error ? lastError.message : 'Cannot connect to the Tiny Wonders backend. Start it on port 8001.');
 }
+
+export type PandaExplanation = { explanation: string; audio_base64: string | null; audio_error: string | null };
+
+export async function explainWithPanda(part: {object_name:string; part_name:string; role:string; description:string; fact:string}): Promise<PandaExplanation> {
+  let lastError: unknown;
+  for (const apiBase of apiBases) {
+    try {
+      const response = await fetch(`${apiBase}/api/explain`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(part)});
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.detail?.error?.message || 'Panda could not explain this part');
+      return payload;
+    } catch (error) { lastError = error; }
+  }
+  throw new Error(lastError instanceof Error ? lastError.message : 'Cannot connect to the backend.');
+}

@@ -1,8 +1,11 @@
 import asyncio
+import base64
 from time import perf_counter
 from uuid import uuid4
+import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from .cache import BlueprintCache
 from .config import get_settings
 from .pipeline import Pipeline
@@ -21,6 +24,47 @@ def get_blueprint(slug: str):
     blueprint = pipeline.demo(slug) or cache.get(slug)
     if not blueprint: raise HTTPException(404, detail={"error": {"code": "not_found", "message": "That demo is not available yet."}})
     return {"blueprint": blueprint, "cached": True, "low_confidence": blueprint.confidence < .6}
+
+
+class PandaExplainRequest(BaseModel):
+    object_name: str
+    part_name: str
+    role: str
+    description: str
+    fact: str
+
+
+@app.post("/api/explain")
+async def explain_with_panda(request: PandaExplainRequest):
+    try:
+        explanation = await asyncio.wait_for(
+            asyncio.to_thread(pipeline.explain_part, **request.model_dump()),
+            timeout=settings.gemma_attempt_timeout_seconds + 10,
+        )
+        audio_base64 = None
+        audio_error = None
+        if settings.elevenlabs_api_key:
+            try:
+                print(f"[panda] creating ElevenLabs audio | voice={settings.elevenlabs_voice_id!r}", flush=True)
+                async with httpx.AsyncClient(timeout=25) as client:
+                    response = await client.post(
+                        f"https://api.elevenlabs.io/v1/text-to-speech/{settings.elevenlabs_voice_id}/stream",
+                        params={"output_format": "mp3_22050_32"},
+                        headers={"xi-api-key": settings.elevenlabs_api_key, "Content-Type": "application/json"},
+                        json={"text": explanation, "model_id": "eleven_flash_v2_5"},
+                    )
+                    response.raise_for_status()
+                audio_base64 = base64.b64encode(response.content).decode("ascii")
+                print(f"[panda] ElevenLabs audio ready | bytes={len(response.content)}", flush=True)
+            except Exception as audio_exc:
+                audio_error = "Panda's voice is unavailable right now."
+                print(f"[panda] ElevenLabs failed: {type(audio_exc).__name__}: {audio_exc}", flush=True)
+        else:
+            audio_error = "Add ELEVENLABS_API_KEY to enable Panda's voice."
+        return {"explanation": explanation, "audio_base64": audio_base64, "audio_error": audio_error}
+    except Exception as exc:
+        print(f"[panda] explanation failed: {type(exc).__name__}: {exc}", flush=True)
+        raise HTTPException(503, detail={"error": {"message": "Panda is taking a break. Please try again."}})
 
 
 @app.post("/api/analyze")

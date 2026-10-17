@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     gemma_attempt_timeout_seconds: int = Field(default=45, validation_alias="GEMMA_ATTEMPT_TIMEOUT_SECONDS")
     frontend_origin: str = Field(default="http://localhost:5173", validation_alias="FRONTEND_ORIGIN")
     max_upload_mb: int = Field(default=8, validation_alias="MAX_UPLOAD_MB")
+    elevenlabs_api_key: str | None = Field(default=None, validation_alias="ELEVENLABS_API_KEY")
+    elevenlabs_voice_id: str = Field(default="pNInz6obpgDQGcFmaJgB", validation_alias="ELEVENLABS_VOICE_ID")
 
 
 @lru_cache
