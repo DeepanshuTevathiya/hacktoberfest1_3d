@@ -1,0 +1,21 @@
+.samples {
+  width: max-content;
+  max-width: 94vw;
+  margin: 1.5rem auto 0;
+  padding: .7rem 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  background: #efffc4;
+  box-shadow: 4px 4px 0 var(--ink);
+  color: var(--ink);
+}
+
+.samples span {
+  font-family: 'DM Mono', monospace;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.samples button { transition: transform .15s ease, background .15s ease; }
+.samples button:hover { transform: translateY(-2px); background: var(--lime); }
